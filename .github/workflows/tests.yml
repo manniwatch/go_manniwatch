@@ -24,7 +24,7 @@ jobs:
       #- name: Install dependencies
       #  run: go get .
       - name: Build
-        run: go build -o main -v main.go
+        run: go build ./...
       - name: Test with the Go CLI
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
       - name: Upload coverage to Codecov
