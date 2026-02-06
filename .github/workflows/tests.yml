@@ -17,11 +17,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Unpack test data
-        run: bash ./decrypt_data.sh
-        working-directory: .
-        env:
-          DATA_PW: ${{ secrets.DATA_PW }}
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
