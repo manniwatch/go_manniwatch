@@ -1,0 +1,38 @@
+name: Test
+on:
+  push:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: write
+  deployments: write
+jobs:
+  test_go:
+    name: Run and Test GO
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack test data
+        run: bash ./decrypt_data.sh
+        working-directory: .
+        env:
+          DATA_PW: ${{ secrets.DATA_PW }}
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+      - name: Install dependencies
+        run: go get .
+      - name: Build
+        run: go build -o main -v main.go
+      - name: Test with the Go CLI
+        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
