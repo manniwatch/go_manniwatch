@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"strings"
@@ -57,7 +58,7 @@ func TestGetVehicleLocations(t *testing.T) {
 		}
 	})
 
-	vehicles, err := client.GetVehicleLocations(PositionTypeCorrected, 1000)
+	vehicles, err := client.GetVehicleLocations(context.Background(), PositionTypeCorrected, 1000)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -111,7 +112,7 @@ func TestGetStopPassages(t *testing.T) {
 		}
 	})
 
-	passages, err := client.GetStopPassages("test-stop-id", StopModeDeparture, 0, 0)
+	passages, err := client.GetStopPassages(context.Background(), "test-stop-id", StopModeDeparture, 0, 0)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -163,7 +164,7 @@ func TestGetSettings(t *testing.T) {
 				}
 			})
 
-			settings, err := client.GetSettings()
+			settings, err := client.GetSettings(context.Background())
 
 			if tt.expectError {
 				if err == nil {
