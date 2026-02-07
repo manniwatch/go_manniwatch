@@ -1,0 +1,34 @@
+name: Update staging branch
+on:
+    workflow_run:
+        workflows: [Test]
+        types: [completed]
+        branches: [main]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+    group: update_staging_branch
+    cancel-in-progress: true
+jobs:
+    update-staging:
+        runs-on: ${{ matrix.os }}
+        name: Update Staging branch
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+        concurrency:
+            group: release_version
+        timeout-minutes: 20
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+                  ref: ${{ github.event.workflow_run.head_branch }}
+            - name: Create Release PR
+              uses: googleapis/release-please-action@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  release-type: go
