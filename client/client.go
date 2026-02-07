@@ -127,7 +127,6 @@ func (c *ManniwatchClient) GetRouteByTripId(ctx context.Context, tripID string) 
 	params := url.Values{}
 	params.Set("id", tripID)
 
-	// Note: TS uses POST with params (query string) for this endpoint
 	req, err := c.buildRequest(ctx, http.MethodPost, "/internetservice/geoserviceDispatcher/services/pathinfo/trip", params, nil)
 	if err != nil {
 		return nil, err
