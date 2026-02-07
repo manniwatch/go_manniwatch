@@ -104,11 +104,10 @@ type Route struct {
 type StopPassage struct {
 	// Actual/Future Departures
 	Actual           []Departure   `json:"actual"`
-	Directions       []interface{} `json:"directions"` // directions: unknown[]
+	Directions       []interface{} `json:"directions"`
 	FirstPassageTime int64         `json:"firstPassageTime"`
-	// TODO: Need schema
-	GeneralAlerts   []interface{} `json:"generalAlerts"` // generalAlerts: unknown[]
-	LastPassageTime int64         `json:"lastPassageTime"`
+	GeneralAlerts    []interface{} `json:"generalAlerts"`
+	LastPassageTime  int64         `json:"lastPassageTime"`
 	// Previous departures
 	Old []Departure `json:"old"`
 	// Routes served by this stop
@@ -269,6 +268,7 @@ type StopPointInfo struct {
 }
 
 type Settings struct {
+	// two letter language code lowercase
 	// eg. de en ar
 	AvailableLanguages []string `json:"AVAILABLE_LANGUAGES"`
 	DefaultTimePreview int      `json:"DEFAULT_TIME_PREVIEW"`
