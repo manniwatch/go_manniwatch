@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -49,13 +50,13 @@ func (c *ManniwatchClient) buildURL(path string) *url.URL {
 }
 
 // buildRequest helper handles method, path, and optional query params or body
-func (c *ManniwatchClient) buildRequest(method, path string, queryParams url.Values, body io.Reader) (*http.Request, error) {
+func (c *ManniwatchClient) buildRequest(ctx context.Context, method, path string, queryParams url.Values, body io.Reader) (*http.Request, error) {
 	u := c.buildURL(path)
 	if queryParams != nil {
 		u.RawQuery = queryParams.Encode()
 	}
 
-	req, err := http.NewRequest(method, u.String(), body)
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +97,7 @@ func (c *ManniwatchClient) executeRequest(req *http.Request, v interface{}) erro
 // GetVehicleLocations returns the vehicle locations
 // positionType: coordinate type (default: CORRECTED)
 // lastUpdate: timestamp of last update
-func (c *ManniwatchClient) GetVehicleLocations(positionType PositionType, lastUpdate int64) (*VehicleLocationList, error) {
+func (c *ManniwatchClient) GetVehicleLocations(ctx context.Context, positionType PositionType, lastUpdate int64) (*VehicleLocationList, error) {
 	if positionType == "" {
 		positionType = PositionTypeCorrected
 	}
@@ -108,7 +109,7 @@ func (c *ManniwatchClient) GetVehicleLocations(positionType PositionType, lastUp
 		params.Set("lastUpdate", strconv.FormatInt(lastUpdate, 10))
 	}
 
-	req, err := c.buildRequest(http.MethodGet, "/internetservice/geoserviceDispatcher/services/vehicleinfo/vehicles", params, nil)
+	req, err := c.buildRequest(ctx, http.MethodGet, "/internetservice/geoserviceDispatcher/services/vehicleinfo/vehicles", params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -122,12 +123,12 @@ func (c *ManniwatchClient) GetVehicleLocations(positionType PositionType, lastUp
 }
 
 // GetRouteByTripId returns route info for a trip
-func (c *ManniwatchClient) GetRouteByTripId(tripID string) (*VehiclePathInfo, error) {
+func (c *ManniwatchClient) GetRouteByTripId(ctx context.Context, tripID string) (*VehiclePathInfo, error) {
 	params := url.Values{}
 	params.Set("id", tripID)
 
 	// Note: TS uses POST with params (query string) for this endpoint
-	req, err := c.buildRequest(http.MethodPost, "/internetservice/geoserviceDispatcher/services/pathinfo/trip", params, nil)
+	req, err := c.buildRequest(ctx, http.MethodPost, "/internetservice/geoserviceDispatcher/services/pathinfo/trip", params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -141,11 +142,11 @@ func (c *ManniwatchClient) GetRouteByTripId(tripID string) (*VehiclePathInfo, er
 }
 
 // GetRouteByVehicleId returns route info for a vehicle
-func (c *ManniwatchClient) GetRouteByVehicleId(vehicleID string) (*VehiclePathInfo, error) {
+func (c *ManniwatchClient) GetRouteByVehicleId(ctx context.Context, vehicleID string) (*VehiclePathInfo, error) {
 	params := url.Values{}
 	params.Set("id", vehicleID)
 
-	req, err := c.buildRequest(http.MethodPost, "/internetservice/geoserviceDispatcher/services/pathinfo/vehicle", params, nil)
+	req, err := c.buildRequest(ctx, http.MethodPost, "/internetservice/geoserviceDispatcher/services/pathinfo/vehicle", params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -159,12 +160,12 @@ func (c *ManniwatchClient) GetRouteByVehicleId(vehicleID string) (*VehiclePathIn
 }
 
 // GetRouteByRouteId returns route info for a route
-func (c *ManniwatchClient) GetRouteByRouteId(routeID string, direction string) (*VehiclePathInfo, error) {
+func (c *ManniwatchClient) GetRouteByRouteId(ctx context.Context, routeID string, direction string) (*VehiclePathInfo, error) {
 	params := url.Values{}
 	params.Set("id", routeID)
 	params.Set("direction", direction)
 
-	req, err := c.buildRequest(http.MethodPost, "/internetservice/geoserviceDispatcher/services/pathinfo/route", params, nil)
+	req, err := c.buildRequest(ctx, http.MethodPost, "/internetservice/geoserviceDispatcher/services/pathinfo/route", params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -178,14 +179,14 @@ func (c *ManniwatchClient) GetRouteByRouteId(routeID string, direction string) (
 }
 
 // GetStopLocations returns stop locations within a bounding box
-func (c *ManniwatchClient) GetStopLocations(box BoundingBox) (*StopLocations, error) {
+func (c *ManniwatchClient) GetStopLocations(ctx context.Context, box BoundingBox) (*StopLocations, error) {
 	params := url.Values{}
 	params.Set("top", strconv.FormatInt(box.Top, 10))
 	params.Set("bottom", strconv.FormatInt(box.Bottom, 10))
 	params.Set("left", strconv.FormatInt(box.Left, 10))
 	params.Set("right", strconv.FormatInt(box.Right, 10))
 
-	req, err := c.buildRequest(http.MethodGet, "/internetservice/geoserviceDispatcher/services/stopinfo/stops", params, nil)
+	req, err := c.buildRequest(ctx, http.MethodGet, "/internetservice/geoserviceDispatcher/services/stopinfo/stops", params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -199,14 +200,14 @@ func (c *ManniwatchClient) GetStopLocations(box BoundingBox) (*StopLocations, er
 }
 
 // GetStopPointLocations returns stop point locations within a bounding box
-func (c *ManniwatchClient) GetStopPointLocations(box BoundingBox) (*StopPointLocations, error) {
+func (c *ManniwatchClient) GetStopPointLocations(ctx context.Context, box BoundingBox) (*StopPointLocations, error) {
 	params := url.Values{}
 	params.Set("top", strconv.FormatInt(box.Top, 10))
 	params.Set("bottom", strconv.FormatInt(box.Bottom, 10))
 	params.Set("left", strconv.FormatInt(box.Left, 10))
 	params.Set("right", strconv.FormatInt(box.Right, 10))
 
-	req, err := c.buildRequest(http.MethodGet, "/internetservice/geoserviceDispatcher/services/stopinfo/stopPoints", params, nil)
+	req, err := c.buildRequest(ctx, http.MethodGet, "/internetservice/geoserviceDispatcher/services/stopinfo/stopPoints", params, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +221,7 @@ func (c *ManniwatchClient) GetStopPointLocations(box BoundingBox) (*StopPointLoc
 }
 
 // GetTripPassages returns trip passages
-func (c *ManniwatchClient) GetTripPassages(tripID string, mode StopMode) (*TripPassages, error) {
+func (c *ManniwatchClient) GetTripPassages(ctx context.Context, tripID string, mode StopMode) (*TripPassages, error) {
 	if mode == "" {
 		mode = StopModeDeparture
 	}
@@ -230,7 +231,7 @@ func (c *ManniwatchClient) GetTripPassages(tripID string, mode StopMode) (*TripP
 	data.Set("mode", string(mode))
 
 	// TS uses data (body) for this endpoint
-	req, err := c.buildRequest(http.MethodPost, "/internetservice/services/tripInfo/tripPassages", nil, strings.NewReader(data.Encode()))
+	req, err := c.buildRequest(ctx, http.MethodPost, "/internetservice/services/tripInfo/tripPassages", nil, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +245,7 @@ func (c *ManniwatchClient) GetTripPassages(tripID string, mode StopMode) (*TripP
 }
 
 // GetStopPassages returns stop passages
-func (c *ManniwatchClient) GetStopPassages(stopID string, mode StopMode, startTime int64, timeFrame int) (*StopPassage, error) {
+func (c *ManniwatchClient) GetStopPassages(ctx context.Context, stopID string, mode StopMode, startTime int64, timeFrame int) (*StopPassage, error) {
 	if mode == "" {
 		mode = StopModeDeparture
 	}
@@ -259,7 +260,7 @@ func (c *ManniwatchClient) GetStopPassages(stopID string, mode StopMode, startTi
 		data.Set("timeFrame", strconv.Itoa(timeFrame))
 	}
 
-	req, err := c.buildRequest(http.MethodPost, "/internetservice/services/passageInfo/stopPassages/stop", nil, strings.NewReader(data.Encode()))
+	req, err := c.buildRequest(ctx, http.MethodPost, "/internetservice/services/passageInfo/stopPassages/stop", nil, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +274,7 @@ func (c *ManniwatchClient) GetStopPassages(stopID string, mode StopMode, startTi
 }
 
 // GetStopPointPassages returns stop point passages
-func (c *ManniwatchClient) GetStopPointPassages(stopPointID string, mode StopMode, startTime int64, timeFrame int) (*StopPassage, error) {
+func (c *ManniwatchClient) GetStopPointPassages(ctx context.Context, stopPointID string, mode StopMode, startTime int64, timeFrame int) (*StopPassage, error) {
 	if mode == "" {
 		mode = StopModeDeparture
 	}
@@ -288,7 +289,7 @@ func (c *ManniwatchClient) GetStopPointPassages(stopPointID string, mode StopMod
 		data.Set("timeFrame", strconv.Itoa(timeFrame))
 	}
 
-	req, err := c.buildRequest(http.MethodPost, "/internetservice/services/passageInfo/stopPassages/stopPoint", nil, strings.NewReader(data.Encode()))
+	req, err := c.buildRequest(ctx, http.MethodPost, "/internetservice/services/passageInfo/stopPassages/stopPoint", nil, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -302,11 +303,11 @@ func (c *ManniwatchClient) GetStopPointPassages(stopPointID string, mode StopMod
 }
 
 // GetStopInfo returns stop info
-func (c *ManniwatchClient) GetStopInfo(stopID string) (*StopInfo, error) {
+func (c *ManniwatchClient) GetStopInfo(ctx context.Context, stopID string) (*StopInfo, error) {
 	data := url.Values{}
 	data.Set("stop", stopID)
 
-	req, err := c.buildRequest(http.MethodPost, "/internetservice/services/stopInfo/stop", nil, strings.NewReader(data.Encode()))
+	req, err := c.buildRequest(ctx, http.MethodPost, "/internetservice/services/stopInfo/stop", nil, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -320,11 +321,11 @@ func (c *ManniwatchClient) GetStopInfo(stopID string) (*StopInfo, error) {
 }
 
 // GetStopPointInfo returns stop point info
-func (c *ManniwatchClient) GetStopPointInfo(stopPointID string) (*StopPointInfo, error) {
+func (c *ManniwatchClient) GetStopPointInfo(ctx context.Context, stopPointID string) (*StopPointInfo, error) {
 	data := url.Values{}
 	data.Set("stopPoint", stopPointID)
 
-	req, err := c.buildRequest(http.MethodPost, "/internetservice/services/stopInfo/stopPoint", nil, strings.NewReader(data.Encode()))
+	req, err := c.buildRequest(ctx, http.MethodPost, "/internetservice/services/stopInfo/stopPoint", nil, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -338,8 +339,8 @@ func (c *ManniwatchClient) GetStopPointInfo(stopPointID string) (*StopPointInfo,
 }
 
 // GetSettings returns settings
-func (c *ManniwatchClient) GetSettings() (*Settings, error) {
-	req, err := c.buildRequest(http.MethodGet, "/internetservice/settings", nil, nil)
+func (c *ManniwatchClient) GetSettings(ctx context.Context) (*Settings, error) {
+	req, err := c.buildRequest(ctx, http.MethodGet, "/internetservice/settings", nil, nil)
 	if err != nil {
 		return nil, err
 	}
