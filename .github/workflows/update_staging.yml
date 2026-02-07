@@ -15,7 +15,7 @@ concurrency:
     cancel-in-progress: true
 jobs:
     update-staging:
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-latest
         name: Update Staging branch
         if: ${{ github.event.workflow_run.conclusion == 'success' }}
         concurrency:
